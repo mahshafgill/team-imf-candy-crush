@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <cmath>
+#include <string>
 using namespace std;
 
 // ---------------- Window and board constants ----------------
@@ -54,12 +55,97 @@ int gameState = MENU;
 int selRow = -1;                    // -1 means nothing is selected
 int selCol = -1;
 int frameCount = 0;                 // counts frames; used for animations (and later the hint timer)
+bool playerWon = false;             // true = "YOU WIN", false = "GAME OVER"
+sf::Font gameFont;                  // loaded once in main()
+bool fontLoaded = false;
 
 // ---------------- Input of the current frame ----------------
 int clickX = 0;
 int clickY = 0;
 bool clicked = false;
 int pressedKey = KEY_NONE;
+
+// =================== IMAN: matches, clearing, falling, refilling (F4, F5) ===================
+
+
+// =================== FAIQA: level file, board drawing, clicks & swaps, save (F2, F3, F8) ===================
+
+
+// =================== MAHSHAF: HUD, menu, hint & shuffle (F6, F7, Bonus) ===================
+
+// Draws text so that its centre is at (x, y). Used for every label in the HUD and menus.
+void drawCenteredText(sf::RenderWindow& win, const string& str, unsigned int size,
+    sf::Color color, float x, float y)
+{
+    if (!fontLoaded)
+        return;                         // no font file: skip the text instead of crashing
+
+    sf::Text text(gameFont, str, size);
+    text.setFillColor(color);
+    sf::FloatRect bounds = text.getLocalBounds();
+    text.setOrigin({ bounds.position.x + bounds.size.x / 2.f,
+                     bounds.position.y + bounds.size.y / 2.f });
+    text.setPosition({ x, y });
+    win.draw(text);
+}
+
+// Feature 6: the 80-pixel strip at the top showing SCORE | MOVES | TARGET and a progress bar.
+void drawHUD(sf::RenderWindow& win)
+{
+    sf::RectangleShape hud({ (float)WINDOW_W, (float)HUD_HEIGHT });
+    hud.setFillColor(sf::Color(20, 20, 45, 230));
+    win.draw(hud);
+
+    float colW = WINDOW_W / 3.f;                    // three equal columns
+    sf::Color labelColor(170, 170, 210);
+
+    drawCenteredText(win, "SCORE", 14, labelColor, colW * 0.5f, 20.f);
+    drawCenteredText(win, to_string(score), 30, sf::Color::White, colW * 0.5f, 46.f);
+
+    sf::Color movesColor = sf::Color::White;
+    if (movesLeft <= 5)
+        movesColor = sf::Color(255, 90, 90);        // red warning when few moves are left
+    drawCenteredText(win, "MOVES", 14, labelColor, colW * 1.5f, 20.f);
+    drawCenteredText(win, to_string(movesLeft), 30, movesColor, colW * 1.5f, 46.f);
+
+    drawCenteredText(win, "TARGET", 14, labelColor, colW * 2.5f, 20.f);
+    drawCenteredText(win, to_string(targetScore), 30, sf::Color(255, 215, 90), colW * 2.5f, 46.f);
+
+    // progress bar: how close the score is to the target (0 = empty, 1 = full)
+    float progress = 0.f;
+    if (targetScore > 0)
+        progress = (float)score / targetScore;
+    if (progress > 1.f)
+        progress = 1.f;
+
+    sf::RectangleShape barBack({ (float)WINDOW_W, 6.f });
+    barBack.setPosition({ 0.f, HUD_HEIGHT - 6.f });
+    barBack.setFillColor(sf::Color(60, 40, 80));
+    win.draw(barBack);
+
+    sf::RectangleShape barFill({ WINDOW_W * progress, 6.f });
+    barFill.setPosition({ 0.f, HUD_HEIGHT - 6.f });
+    barFill.setFillColor(sf::Color(255, 90, 160));
+    win.draw(barFill);
+}
+
+// The "YOU WIN" / "GAME OVER" screen with the final score.
+void drawEndScreen(sf::RenderWindow& win)
+{
+    if (playerWon)
+        drawCenteredText(win, "YOU WIN!", 64, sf::Color(255, 215, 90), WINDOW_W / 2.f, 260.f);
+    else
+        drawCenteredText(win, "GAME OVER", 64, sf::Color(255, 90, 90), WINDOW_W / 2.f, 260.f);
+
+    drawCenteredText(win, "Final score: " + to_string(score), 30, sf::Color::White, WINDOW_W / 2.f, 340.f);
+
+    // "Press Enter" fades in and out: sin() gives -1..1, so (sin + 1) / 2 gives 0..1
+    float pulse = (sin(frameCount * 0.1f) + 1.f) / 2.f;
+    sf::Color fade(255, 255, 255, (std::uint8_t)(120 + pulse * 135));
+    drawCenteredText(win, "Press Enter", 22, fade, WINDOW_W / 2.f, 430.f);
+}
+
+// YOUR TURN: write checkGameEnd() here (see the hints)
 
 // Reads all events of this frame and stores them in the input variables above.
 void handleInput(sf::RenderWindow& win)
@@ -105,13 +191,23 @@ void updateGame()
     switch (gameState)
     {
     case MENU:
-        // TEMPORARY: Enter starts playing (the real menu comes in Feature 7)
+        // TEMPORARY: Enter starts a test game (real New Game + loadLevel come later)
         if (pressedKey == KEY_ENTER)
+        {
+            score = 0;
+            movesLeft = 20;
+            targetScore = 800;
             gameState = PLAYING;
+        }
         break;
 
     case PLAYING:
-        // TEMPORARY: Esc goes back to the menu (saving comes in Feature 8)
+        // TEMPORARY test keys: Up = +50 score, Down = use one move
+        if (pressedKey == KEY_UP)
+            score += 50;
+        if (pressedKey == KEY_DOWN)
+            movesLeft--;
+
         if (pressedKey == KEY_ESCAPE)
             gameState = MENU;
         break;
@@ -150,10 +246,7 @@ void drawBouncingCandies(sf::RenderWindow& win, sf::CircleShape& candy)
 // Draws the current state.
 void drawGame(sf::RenderWindow& win)
 {
-    // shapes are made once (static) and only moved/recoloured every frame
     static sf::CircleShape candy(CANDY_RADIUS);
-    static sf::RectangleShape hud({ (float)WINDOW_W, (float)HUD_HEIGHT });
-    static sf::RectangleShape hudLine({ (float)WINDOW_W, 3.f });
     static sf::RectangleShape boardArea({ COLS * CELL, ROWS * CELL });
 
     switch (gameState)
@@ -166,34 +259,35 @@ void drawGame(sf::RenderWindow& win)
     case PLAYING:
         drawBackground(win, sf::Color(30, 30, 60), sf::Color(10, 10, 25));
 
-        hud.setFillColor(sf::Color(20, 20, 45, 230));        // HUD strip at the top
-        win.draw(hud);
-
-        hudLine.setPosition({ 0.f, (float)HUD_HEIGHT - 3.f }); // pink accent line under the HUD
-        hudLine.setFillColor(sf::Color(255, 90, 160));
-        win.draw(hudLine);
-
-        boardArea.setPosition({ BOARD_X, BOARD_Y });          // where the board will be drawn
+        boardArea.setPosition({ BOARD_X, BOARD_Y });   // where the board will be drawn
         boardArea.setFillColor(sf::Color(40, 40, 75));
         boardArea.setOutlineThickness(3.f);
         boardArea.setOutlineColor(sf::Color(90, 90, 140));
         win.draw(boardArea);
+
+        drawHUD(win);
         break;
 
     case GAME_OVER:
-        drawBackground(win, sf::Color(110, 25, 35), sf::Color(30, 5, 10));
+        if (playerWon)
+            drawBackground(win, sf::Color(120, 70, 20), sf::Color(40, 15, 50));   // gold
+        else
+            drawBackground(win, sf::Color(110, 25, 35), sf::Color(30, 5, 10));    // red
+        drawEndScreen(win);
         break;
     }
 
     win.display();
 }
-
 int main()
 {
-    srand(time(0));
+    srand((unsigned)time(0));
 
     sf::RenderWindow window(sf::VideoMode({ WINDOW_W, WINDOW_H }), "Candy Crush");
     window.setFramerateLimit(60);   // same speed on every laptop
+
+    // load the font once; if it's missing the game still runs, just without text
+    fontLoaded = gameFont.openFromFile("game_font.ttf");
 
     // The game loop: input, update, draw - always in this order.
     while (window.isOpen())
