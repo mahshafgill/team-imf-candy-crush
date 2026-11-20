@@ -9,6 +9,7 @@
 #include <ctime>
 #include <cmath>
 #include <string>
+#include<fstream>
 using namespace std;
 
 // ---------------- Window and board constants ----------------
@@ -66,6 +67,61 @@ bool clicked = false;
 int pressedKey = KEY_NONE;
 
 // =================== IMAN: matches, clearing, falling, refilling (F4, F5) ===================
+
+//Matching
+int findMatches(bool marked[][8], int board[][8])
+{
+    int candies = 0;
+    for (int r = 0;r < ROWS;r++)
+    {
+        for (int c = 0;c < COLS;c++)
+        {
+            marked[r][c] = false;
+        }
+    }
+    
+    for (int r = 0;r < ROWS;r++)//ROWS
+    {
+        for (int c = 0;c < COLS-2;c++)
+        {
+            if (board[r][c] == board[r][c + 1] && board[r][c] == board[r][c + 2] && board[r][c] != 0)
+            {
+                marked[r][c] = true;
+                marked[r][c+1] = true;
+                marked[r][c+2] = true;
+            }
+        }
+    }
+    for (int c = 0;c < COLS;c++)//COLS
+    {
+        for (int r = 0;r < ROWS-2;r++)
+        {
+            if (board[r][c]==board[r+1][c]&& board[r][c] == board[r + 2][c]&&board[r][c]!=0)
+            {
+                marked[r][c] = true;
+                marked[r+1][c] = true;
+                marked[r+2][c] = true;
+
+
+            }
+        }
+    }
+    for (int r = 0;r < ROWS;r++)
+    {
+        for (int c = 0;c < COLS;c++)
+        {
+            if (marked[r][c] == true)
+            {
+                candies++;
+
+            }
+        }
+    }
+    return candies;
+}
+
+
+
 
 
 // =================== FAIQA: level file, board drawing, clicks & swaps, save (F2, F3, F8) ===================
@@ -347,12 +403,18 @@ int main()
     fontLoaded = gameFont.openFromFile("game_font.ttf");
 
     // The game loop: input, update, draw - always in this order.
+    bool marked[ROWS][COLS] = {};
+
+   
     while (window.isOpen())
     {
         handleInput(window);
         updateGame();
         drawGame(window);
     }
+ 
+
+  
 
     return 0;
 }
