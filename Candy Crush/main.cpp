@@ -70,6 +70,47 @@ int pressedKey = KEY_NONE;
 
 // =================== FAIQA: level file, board drawing, clicks & swaps, save (F2, F3, F8) ===================
 
+bool loadLevel(const string& filename)                 
+{
+    ifstream file(filename);
+    if (!file.is_open())                                             // reads the numbers from level.txt into memory
+    {
+        return false;
+    }
+
+    for (int row = 0; row < ROWS; row++)
+    {
+        for (int col = 0; col < COLS; col++)
+        {
+            int value = 0;
+            if (!(file >> value))
+            {
+                return false;
+            }
+
+            if (value < 0 || value > 6)
+            {
+                value = 0;
+            }
+
+            board[row][col] = value;
+        }
+    }
+
+    file.close();
+    return true;
+}
+
+//
+//void drawBoard(sf::RenderWindow& win)
+//{
+//                                                     // //drawBoard bridges that data to the display 
+//
+//
+//
+//
+//}
+
 
 // =================== MAHSHAF: HUD, menu, hint & shuffle (F6, F7, Bonus) ===================
 
