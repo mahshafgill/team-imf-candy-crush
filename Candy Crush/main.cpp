@@ -145,7 +145,20 @@ void drawEndScreen(sf::RenderWindow& win)
     drawCenteredText(win, "Press Enter", 22, fade, WINDOW_W / 2.f, 430.f);
 }
 
-// YOUR TURN: write checkGameEnd() here (see the hints)
+// Checks if the game is finished: target reached = win, no moves left = lose.
+void checkGameEnd()
+{
+    if (score >= targetScore)
+    {
+        playerWon = true;
+        gameState = GAME_OVER;
+    }
+    else if (movesLeft <= 0)
+    {
+        playerWon = false;
+        gameState = GAME_OVER;
+    }
+}
 
 // Reads all events of this frame and stores them in the input variables above.
 void handleInput(sf::RenderWindow& win)
@@ -210,6 +223,8 @@ void updateGame()
 
         if (pressedKey == KEY_ESCAPE)
             gameState = MENU;
+
+        checkGameEnd();             // win or lose? (checked after every change)
         break;
 
     case GAME_OVER:
@@ -279,6 +294,7 @@ void drawGame(sf::RenderWindow& win)
 
     win.display();
 }
+
 int main()
 {
     srand((unsigned)time(0));
