@@ -126,47 +126,69 @@ int findMatches(bool marked[][8], int board[][8])
 
 // =================== FAIQA: level file, board drawing, clicks & swaps, save (F2, F3, F8) ===================
 
-bool loadLevel(const string& filename)                 
+
+
+bool loadLevel(const string& filename)
 {
-    ifstream file(filename);
-    if (!file.is_open())                                             // reads the numbers from level.txt into memory
+    ifstream levelFile(filename);
+    if (!levelFile.is_open())
     {
+        return false;                       // missing file
+    }
+
+    int fileRows = 0;
+    int fileCols = 0;
+    int fileMoves = 0;
+    int fileTarget = 0;
+
+    if (!(levelFile >> fileRows >> fileCols >> fileMoves >> fileTarget))
+    {
+        levelFile.close();
+        return false;                       // empty or broken header
+    }
+
+    
+    if (fileRows != ROWS || fileCols != COLS || fileMoves <= 0 || fileTarget <= 0)
+    {
+        levelFile.close();
         return false;
     }
+
+    
+    int tempBoard[ROWS][COLS];
 
     for (int row = 0; row < ROWS; row++)
     {
         for (int col = 0; col < COLS; col++)
         {
-            int value = 0;
-            if (!(file >> value))
+            int cellValue = 0;
+            if (!(levelFile >> cellValue) || cellValue < 0 || cellValue > 6)
             {
-                return false;
+                levelFile.close();
+                return false;               
             }
-
-            if (value < 0 || value > 6)
-            {
-                value = 0;
-            }
-
-            board[row][col] = value;
+            tempBoard[row][col] = cellValue;
         }
     }
 
-    file.close();
+    
+    for (int row = 0; row < ROWS; row++)
+    {
+        for (int col = 0; col < COLS; col++)
+        {
+            board[row][col] = tempBoard[row][col];
+        }
+    }
+
+    movesLeft = fileMoves;
+    targetScore = fileTarget;
+    score = 0;
+    selRow = -1;
+    selCol = -1;
+
+    levelFile.close();
     return true;
 }
-
-//
-//void drawBoard(sf::RenderWindow& win)
-//{
-//                                                     // //drawBoard bridges that data to the display 
-//
-//
-//
-//
-//}
-
 
 // =================== MAHSHAF: HUD, menu, hint & shuffle (F6, F7, Bonus) ===================
 
