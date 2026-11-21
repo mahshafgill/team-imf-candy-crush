@@ -403,7 +403,7 @@ int main()
     fontLoaded = gameFont.openFromFile("game_font.ttf");
 
     // The game loop: input, update, draw - always in this order.
-    bool marked[ROWS][COLS] = {};
+    
 
    
     while (window.isOpen())
