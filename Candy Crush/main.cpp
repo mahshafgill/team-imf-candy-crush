@@ -208,6 +208,43 @@ bool loadLevel(const string& filename)
     return true;
 }
 
+void drawBoard(sf::RenderWindow& win)
+{
+    sf::RectangleShape cellBox({ CELL - 2.f, CELL - 2.f });
+    sf::CircleShape candyCircle(CANDY_RADIUS);
+
+    for (int row = 0; row < ROWS; row++)
+    {
+        for (int col = 0; col < COLS; col++)
+        {
+            float cellLeft = BOARD_X + col * CELL;
+            float cellTop = BOARD_Y + row * CELL;
+
+            // 1. dark square for every cell
+            cellBox.setPosition({ cellLeft + 1.f, cellTop + 1.f });
+            cellBox.setFillColor(sf::Color(35, 35, 65));
+            win.draw(cellBox);
+
+
+            int candyType = board[row][col];                    // 2. candy on top of it (0 = empty, so no candy)
+            if (candyType >= 1 && candyType <= 6)
+            {
+                float centerX = cellLeft + CELL / 2.f;
+                float centerY = cellTop + CELL / 2.f;
+
+                candyCircle.setFillColor(candyColors[candyType]);
+                candyCircle.setPosition({ centerX - CANDY_RADIUS, centerY - CANDY_RADIUS });
+                win.draw(candyCircle);
+            }
+        }
+    }
+}
+
+
+
+
+
+
 // =================== MAHSHAF: HUD, menu, hint & shuffle (F6, F7, Bonus) ===================
 
 int menuSelection = 0;              // 0: New Game, 1: Continue, 2: Exit
