@@ -120,6 +120,24 @@ int findMatches(bool marked[][8], int board[][8])
     return candies;
 }
 
+//Candy Clearing and Scoring
+int clear_score(bool marked[][8], int board[][8])
+{
+    int obtained = 0;
+    for (int r = 0;r < ROWS;r++)
+    {
+        for (int c = 0;c < COLS;c++)
+        {
+            if (marked[r][c] == true)
+            {
+                board[r][c] = 0;
+                obtained += POINTS;
+            }
+        }
+    }
+    return obtained;
+}
+
 
 
 
