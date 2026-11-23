@@ -139,6 +139,30 @@ int clear_score(bool marked[][8], int board[][8])
 }
 
 
+//Falling
+
+void dropcandies(int board[][8])
+{
+    for (int c = 0;c < COLS;c++)//Column Wise
+    {
+        int writeRow = 7;
+        for (int r = 7;r >= 0;r--)
+        {
+            if (board[r][c])
+            {
+                board[writeRow][c] = board[r][c];
+                writeRow--;
+            }
+        }
+        while (writeRow >= 0)
+        {
+            board[writeRow][c] = 0;
+            writeRow--;
+        }
+    }
+}
+
+
 
 
 
