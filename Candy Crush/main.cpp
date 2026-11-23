@@ -192,6 +192,19 @@ bool loadLevel(const string& filename)
 
 // =================== MAHSHAF: HUD, menu, hint & shuffle (F6, F7, Bonus) ===================
 
+int menuSelection = 0;              // 0: New Game, 1: Continue, 2: Exit
+string menuMessage = "";            // displays "No saved game" or missing level error
+
+// Forward declarations
+bool loadSavedGame();
+void activateMenuOption(sf::RenderWindow& win);
+
+// Temporary stub until Faiqa adds Feature 8 (savegame.txt)
+bool loadSavedGame()
+{
+    return false;
+}
+
 // Draws text so that its centre is at (x, y). Used for every label in the HUD and menus.
 void drawCenteredText(sf::RenderWindow& win, const string& str, unsigned int size,
     sf::Color color, float x, float y)
@@ -316,20 +329,32 @@ void handleInput(sf::RenderWindow& win)
 }
 
 // Changes the game using this frame's input. Each state only does its own work.
-void updateGame()
+void updateGame(sf::RenderWindow& win)
 {
     frameCount++;
 
     switch (gameState)
     {
     case MENU:
-        // TEMPORARY: Enter starts a test game (real New Game + loadLevel come later)
-        if (pressedKey == KEY_ENTER)
+        if (pressedKey == KEY_UP)
+            menuSelection = (menuSelection + 2) % 3;
+        else if (pressedKey == KEY_DOWN)
+            menuSelection = (menuSelection + 1) % 3;
+        else if (pressedKey == KEY_ENTER)
+            activateMenuOption(win);
+
+        if (clicked)
         {
-            score = 0;
-            movesLeft = 20;
-            targetScore = 800;
-            gameState = PLAYING;
+            for (int i = 0; i < 3; i++)
+            {
+                float y = 390.f + i * 65.f;
+                sf::FloatRect box({ WINDOW_W / 2.f - 120.f, y - 24.f }, { 240.f, 48.f });
+                if (box.contains({ (float)clickX, (float)clickY }))
+                {
+                    menuSelection = i;
+                    activateMenuOption(win);
+                }
+            }
         }
         break;
 
@@ -377,6 +402,85 @@ void drawBouncingCandies(sf::RenderWindow& win, sf::CircleShape& candy)
     }
 }
 
+// Runs the selected Main Menu option: New Game (0), Continue (1), or Exit (2)
+void activateMenuOption(sf::RenderWindow& win)
+{
+    menuMessage = "";
+
+    if (menuSelection == 0)         // New Game: always starts fresh from level.txt
+    {
+        if (loadLevel("level.txt"))
+        {
+            gameState = PLAYING;
+        }
+        else
+        {
+            menuMessage = "Error: level.txt not found!";
+        }
+    }
+    else if (menuSelection == 1)    // Continue: load saved game
+    {
+        if (loadSavedGame())
+        {
+            selRow = -1;
+            selCol = -1;
+            gameState = PLAYING;
+        }
+        else
+        {
+            menuMessage = "No saved game";
+        }
+    }
+    else if (menuSelection == 2)    // Exit
+    {
+        win.close();
+    }
+}
+
+// Feature 7: Draws the Main Menu with New Game, Continue, Exit in exact order
+void drawMenu(sf::RenderWindow& win)
+{
+    drawCenteredText(win, "CANDY CRUSH", 54, sf::Color(255, 215, 90), WINDOW_W / 2.f, 145.f);
+    drawCenteredText(win, "Team IMF  |  CS1002", 18, sf::Color(180, 180, 220), WINDOW_W / 2.f, 195.f);
+
+    const string options[3] = { "New Game", "Continue", "Exit" };
+    float startY = 390.f;
+    float gapY = 65.f;
+    float btnW = 240.f;
+    float btnH = 48.f;
+
+    for (int i = 0; i < 3; i++)
+    {
+        float y = startY + i * gapY;
+        bool isSelected = (i == menuSelection);
+
+        sf::RectangleShape btn({ btnW, btnH });
+        btn.setOrigin({ btnW / 2.f, btnH / 2.f });
+        btn.setPosition({ WINDOW_W / 2.f, y });
+
+        if (isSelected)
+        {
+            btn.setFillColor(sf::Color(255, 90, 160));
+            btn.setOutlineThickness(3.f);
+            btn.setOutlineColor(sf::Color::White);
+        }
+        else
+        {
+            btn.setFillColor(sf::Color(45, 30, 80, 220));
+            btn.setOutlineThickness(2.f);
+            btn.setOutlineColor(sf::Color(120, 100, 170));
+        }
+        win.draw(btn);
+
+        drawCenteredText(win, options[i], 24, sf::Color::White, WINDOW_W / 2.f, y - 2.f);
+    }
+
+    if (!menuMessage.empty())
+    {
+        drawCenteredText(win, menuMessage, 20, sf::Color(255, 110, 110), WINDOW_W / 2.f, 600.f);
+    }
+}
+
 // Draws the current state.
 void drawGame(sf::RenderWindow& win)
 {
@@ -388,6 +492,7 @@ void drawGame(sf::RenderWindow& win)
     case MENU:
         drawBackground(win, sf::Color(70, 30, 110), sf::Color(20, 10, 40));
         drawBouncingCandies(win, candy);
+        drawMenu(win);
         break;
 
     case PLAYING:
@@ -431,7 +536,7 @@ int main()
     while (window.isOpen())
     {
         handleInput(window);
-        updateGame();
+        updateGame(window);
         drawGame(window);
     }
  
