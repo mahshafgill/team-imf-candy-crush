@@ -593,6 +593,7 @@ int main()
         handleInput(window);
         updateGame(window);
         drawGame(window);
+
     }
  
 
