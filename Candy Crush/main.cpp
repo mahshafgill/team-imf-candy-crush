@@ -282,6 +282,47 @@ void drawBoard(sf::RenderWindow& win)
 
 
 
+bool trySwap(int r1, int c1, int r2, int c2)
+{
+    bool neighbour = false;                      //Checking for Neighbours
+
+    if (r1 == r2 && (c1 - c2 == 1 || c2 - c1 == 1))   
+    {
+        neighbour = true;
+    }
+    if (c1 == c2 && (r1 - r2 == 1 || r2 - r1 == 1))   
+    {
+        neighbour = true;
+    }
+
+    if (neighbour == false)
+    {
+        return false;                                
+    }
+
+    
+    int temp = board[r1][c1];
+    board[r1][c1] = board[r2][c2];
+    board[r2][c2] = temp;
+
+   
+    bool marked[ROWS][COLS];
+    int found = findMatches(marked, board);
+
+ 
+    if (found == 0)
+    {
+        temp = board[r1][c1];
+        board[r1][c1] = board[r2][c2];
+        board[r2][c2] = temp;
+        return false;
+    }
+
+    return true;                                    
+}
+
+
+
 
 
 
