@@ -162,6 +162,22 @@ void dropcandies(int board[][8])
     }
 }
 
+//Refilling
+
+void Refill(int board[][8])
+{
+    for (int r = 0;r < ROWS;r++)
+    {
+        for (int c = 0;c < COLS;c++)
+        {
+            if (board[r][c] == 0)
+            {
+                board[r][c] = rand() % 6 + 1;
+            }
+        }
+    }
+}
+
 
 
 
