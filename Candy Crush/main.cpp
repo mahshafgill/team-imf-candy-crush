@@ -178,6 +178,20 @@ void Refill(int board[][8])
     }
 }
 
+//Chains
+
+void chains(bool marked[][8], int board[][8])
+{
+    while (findMatches(marked, board))//when candy exists
+    {
+        score += clear_score(marked, board);
+        dropcandies(board);
+        Refill(board);
+    }
+    
+
+}
+
 
 
 
