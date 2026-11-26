@@ -277,6 +277,15 @@ void drawBoard(sf::RenderWindow& win)
             }
         }
     }
+    if (selRow != -1 && selCol != -1)
+    {
+        sf::RectangleShape ring({ CELL - 8.f, CELL - 8.f });
+        ring.setPosition({ BOARD_X + selCol * CELL + 4.f, BOARD_Y + selRow * CELL + 4.f });
+        ring.setFillColor(sf::Color::Transparent);
+        ring.setOutlineThickness(4.f);
+        ring.setOutlineColor(sf::Color::White);
+        win.draw(ring);
+    }
 }
 
 bool trySwap(int r1, int c1, int r2, int c2)
@@ -313,6 +322,32 @@ bool trySwap(int r1, int c1, int r2, int c2)
     }
 
     return true;
+}
+
+bool handleBoardClick(int x, int y)
+{
+    
+    if (x < 20 || x >= 580 || y < 100 || y >= 660)
+    {
+        return false;
+    }
+
+    int col = (x - 20) / 70;
+    int row = (y - 100) / 70;
+
+      // first click: select the candy
+    if (selRow == -1)
+    {
+        selRow = row;
+        selCol = col;
+        return false;
+    }
+
+    // second click: try to swap
+    bool swapped = trySwap(selRow, selCol, row, col);
+    selRow = -1;
+    selCol = -1;
+    return swapped;
 }
 
 
@@ -643,6 +678,14 @@ void update(sf::RenderWindow& win)
 
         if (pressedKey == KEY_ESCAPE)
             gameState = MENU;
+
+        if (clicked && handleBoardClick(clickX, clickY))
+        {
+            movesLeft--;
+            bool marked[ROWS][COLS];
+            chains(marked, board);
+            shuffleboard();
+        }
 
         end();
         break;
