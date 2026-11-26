@@ -9,6 +9,7 @@
 #include <ctime>
 #include <string>
 #include <fstream>
+#include<iostream>
 using namespace std;
 
 // ---------------- Window and board constants ----------------
@@ -134,7 +135,7 @@ int clear_score(bool marked[][8], int board[][8])
     return obtained;
 }
 
-//Falling
+//Falling_________Verified(multi gap falling)
 void dropcandies(int board[][8])
 {
     for (int c = 0; c < COLS; c++)//Column Wise
@@ -171,15 +172,18 @@ void Refill(int board[][8])
     }
 }
 
-//Chains
+//Chains_________Verified(multiple chain records)
 void chains(bool marked[][8], int board[][8])
 {
-    while (findMatches(marked, board))//when candy exists
+   
+    while (findMatches(marked, board))//when candy matches
     {
         score += clear_score(marked, board);
         dropcandies(board);
         Refill(board);
+        
     }
+    
 }
 
 
@@ -804,6 +808,7 @@ void draw(sf::RenderWindow& win)
 int main()
 {
     srand((unsigned)time(0));
+
 
     sf::RenderWindow window(sf::VideoMode({ WINDOW_W, WINDOW_H }), "Candy Crush");
     window.setFramerateLimit(60);
