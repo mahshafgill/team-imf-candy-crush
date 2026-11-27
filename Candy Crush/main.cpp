@@ -423,8 +423,6 @@ int mix_time = 0;                   // shows "Shuffling..." for 60 frames
 // Forward declarations
 bool loadSavedGame();
 void options(sf::RenderWindow& win);
-bool fmove(int& r1, int& c1, int& r2, int& c2);
-void shuffleboard();
 
 
 // Mahshaf - prints text centered at (x, y)
@@ -507,14 +505,15 @@ void end()
     {
         playerWon = true;
         gameState = GAME_OVER;
+        clearSaveFile();
     }
     else if (movesLeft <= 0)
     {
         playerWon = false;
         gameState = GAME_OVER;
+        clearSaveFile();
     }
 }
-
 // Mahshaf - Feature 1: reads window close, mouse clicks, and keyboard keys
 void input(sf::RenderWindow& win)
 {
@@ -723,16 +722,11 @@ void update(sf::RenderWindow& win)
             }
         }
 
-        // TEMPORARY test keys: Up = +50 score, Down = use one move
-        if (pressedKey == KEY_UP)
-            score += 50;
-        if (pressedKey == KEY_DOWN)
-            movesLeft--;
-
         if (pressedKey == KEY_ESCAPE)
         {
             saveGame();
             gameState = MENU;
+            break;
         }
 
         if (clicked && handleBoardClick(clickX, clickY))
@@ -823,7 +817,7 @@ void options(sf::RenderWindow& win)
 void menu(sf::RenderWindow& win)
 {
     middletxt(win, "CANDY CRUSH", 54, sf::Color(255, 215, 90), WINDOW_W / 2.f, 145.f);
-    middletxt(win, "Team IMF  |  CS1002", 18, sf::Color(180, 180, 220), WINDOW_W / 2.f, 195.f);
+    middletxt(win, "Team IMF", 18, sf::Color(180, 180, 220), WINDOW_W / 2.f, 195.f);
 
     const string options[3] = { "New Game", "Continue", "Exit" };
     float startY = 390.f;
