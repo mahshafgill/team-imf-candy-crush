@@ -72,6 +72,7 @@ int pressedKey = KEY_NONE;
 int findMatches(bool marked[][8], int board[][8])
 {
     int candies = 0;
+    //Setting marked array to false before new match is found
     for (int r = 0; r < ROWS; r++)
     {
         for (int c = 0; c < COLS; c++)
@@ -139,7 +140,7 @@ int clear_score(bool marked[][8], int board[][8])
 void dropcandies(int board[][8])
 {
     for (int c = 0; c < COLS; c++)//Column Wise
-    {
+    {   //writeRow tracks where the new candy is placed
         int writeRow = 7;
         for (int r = 7; r >= 0; r--)
         {
