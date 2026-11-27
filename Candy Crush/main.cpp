@@ -24,6 +24,17 @@ const float BOARD_Y = 100.f;
 const float CANDY_RADIUS = 28.f;    // candy circle inside a 70 x 70 cell
 const int POINTS = 10;              // points for every cleared candy
 
+const int CANDY_TYPES = 6;          // 6 candy colours
+const int FPS = 60;                 // frame rate limit
+const int LOW_MOVES = 5;            // moves turn red at 5 or less
+const int HINT_WAIT = 300;          // 5 seconds at 60 fps
+const int MIX_SHOW = 60;            // 1 second banner at 60 fps
+const float BTN_Y = 390.f;          // first menu button y
+const float BTN_GAP = 65.f;         // space between menu buttons
+const float BTN_W = 240.f;          // menu button width
+const float BTN_H = 48.f;           // menu button height
+
+
 // ---------------- Game states ----------------
 const int MENU = 0;
 const int PLAYING = 1;
@@ -415,15 +426,13 @@ int choose_menu = 0;                // Mahshaf - 0: New Game, 1: Continue, 2: Ex
 string menu_ins = "";               // Mahshaf - error text if level or save file is missing
 
 // Mahshaf - hint and shuffle variables (Bonus)
-int wait_time = 0;                  // counts idle frames (300 = 5 sec)
+int wait_time = 0;                  // counts idle frames
 bool hint_on = false;
 int hr1 = -1, hc1 = -1, hr2 = -1, hc2 = -1;
-int mix_time = 0;                   // shows "Shuffling..." for 60 frames
+int mix_time = 0;                   // timer for "Shuffling..." message
 
-// Forward declarations
-bool loadSavedGame();
+// Forward declaration
 void options(sf::RenderWindow& win);
-
 
 // Mahshaf - prints text centered at (x, y)
 void middletxt(sf::RenderWindow& win, const string& str, unsigned int size,
@@ -455,7 +464,7 @@ void hud(sf::RenderWindow& win)
     middletxt(win, to_string(score), 30, sf::Color::White, colw * 0.5f, 46.f);
 
     sf::Color movescolor = sf::Color::White;
-    if (movesLeft <= 5)
+    if (movesLeft <= LOW_MOVES)
         movescolor = sf::Color(255, 90, 90);
     middletxt(win, "MOVES", 14, labelcolor, colw * 1.5f, 20.f);
     middletxt(win, to_string(movesLeft), 30, movescolor, colw * 1.5f, 46.f);
@@ -490,7 +499,7 @@ void endscr(sf::RenderWindow& win)
 
     middletxt(win, "Final score: " + to_string(score), 30, sf::Color::White, WINDOW_W / 2.f, 340.f);
 
-    // blink "Press Enter" using frame count
+    // blink "Press Enter" every 25 frames
     int pulse = (frameCount / 25) % 2;
     sf::Color fade = sf::Color::White;
     if (pulse == 1)
@@ -514,6 +523,7 @@ void end()
         clearSaveFile();
     }
 }
+
 // Mahshaf - Feature 1: reads window close, mouse clicks, and keyboard keys
 void input(sf::RenderWindow& win)
 {
@@ -552,7 +562,7 @@ void input(sf::RenderWindow& win)
 // Mahshaf - Bonus Backend: checks right and down swaps for every cell to find a valid move
 bool fmove(int& r1, int& c1, int& r2, int& c2)
 {
-    bool m[8][8];
+    bool m[ROWS][COLS];
     int dr[2] = { 0, 1 };             // 0: right neighbour, 1: bottom neighbour
     int dc[2] = { 1, 0 };
 
@@ -593,28 +603,23 @@ bool fmove(int& r1, int& c1, int& r2, int& c2)
     return false;
 }
 
-// Mahshaf - Bonus Backend: shuffles existing candies on the board if no valid moves exist
+// Mahshaf - Bonus Backend: refills board with random candies if no valid moves exist
 void shuffleboard()
 {
     int r1, c1, r2, c2;
     if (fmove(r1, c1, r2, c2))
         return;
 
-    bool m[8][8];
+    bool m[ROWS][COLS];
     bool ok = false;
 
     while (!ok)
     {
-        // swap random pairs of cells across the board
         for (int r = 0; r < ROWS; r++)
         {
             for (int c = 0; c < COLS; c++)
             {
-                int rr = rand() % ROWS;
-                int cc = rand() % COLS;
-                int temp = board[r][c];
-                board[r][c] = board[rr][cc];
-                board[rr][cc] = temp;
+                board[r][c] = rand() % CANDY_TYPES + 1;
             }
         }
 
@@ -628,7 +633,7 @@ void shuffleboard()
     selCol = -1;
     wait_time = 0;
     hint_on = false;
-    mix_time = 60;
+    mix_time = MIX_SHOW;
 }
 
 // Mahshaf - Bonus: draws yellow hint boxes and "Shuffling..." alert
@@ -652,13 +657,13 @@ void hint_shuffle(sf::RenderWindow& win)
     {
         sf::RectangleShape msgbox({ 260.f, 60.f });
         msgbox.setOrigin({ 130.f, 30.f });
-        msgbox.setPosition({ WINDOW_W / 2.f, BOARD_Y + 280.f });
+        msgbox.setPosition({ WINDOW_W / 2.f, BOARD_Y + (ROWS * CELL) / 2.f });
         msgbox.setFillColor(sf::Color(20, 20, 45, 235));
         msgbox.setOutlineThickness(3.f);
         msgbox.setOutlineColor(sf::Color::Yellow);
         win.draw(msgbox);
 
-        middletxt(win, "Shuffling...", 26, sf::Color::Yellow, WINDOW_W / 2.f, BOARD_Y + 278.f);
+        middletxt(win, "Shuffling...", 26, sf::Color::Yellow, WINDOW_W / 2.f, BOARD_Y + (ROWS * CELL) / 2.f - 2.f);
     }
 }
 
@@ -691,9 +696,9 @@ void update(sf::RenderWindow& win)
         {
             for (int i = 0; i < 3; i++)
             {
-                float y = 390.f + i * 65.f;
-                if (clickX >= WINDOW_W / 2 - 120 && clickX <= WINDOW_W / 2 + 120 &&
-                    clickY >= y - 24.f && clickY <= y + 24.f)
+                float y = BTN_Y + i * BTN_GAP;
+                if (clickX >= WINDOW_W / 2.f - BTN_W / 2.f && clickX <= WINDOW_W / 2.f + BTN_W / 2.f &&
+                    clickY >= y - BTN_H / 2.f && clickY <= y + BTN_H / 2.f)
                 {
                     choose_menu = i;
                     options(win);
@@ -706,7 +711,7 @@ void update(sf::RenderWindow& win)
         if (mix_time > 0)
             mix_time--;
 
-        // Mahshaf - reset hint on click, otherwise trigger hint after 5 seconds (300 frames)
+        // Mahshaf - reset hint on click, otherwise trigger hint after HINT_WAIT frames
         if (clicked)
         {
             wait_time = 0;
@@ -715,7 +720,7 @@ void update(sf::RenderWindow& win)
         else
         {
             wait_time++;
-            if (wait_time >= 300 && !hint_on)
+            if (wait_time >= HINT_WAIT && !hint_on)
             {
                 if (fmove(hr1, hc1, hr2, hc2))
                     hint_on = true;
@@ -759,10 +764,10 @@ void bg(sf::RenderWindow& win, sf::Color top, sf::Color bottom)
     win.draw(bg);
 }
 
-// Mahshaf - draws 6 bouncing candies on the Main Menu
+// Mahshaf - draws bouncing candies on the Main Menu
 void bounce(sf::RenderWindow& win, sf::CircleShape& candy)
 {
-    for (int i = 1; i <= 6; i++)
+    for (int i = 1; i <= CANDY_TYPES; i++)
     {
         int step = (frameCount / 5 + i * 2) % 10;
         float offset = (step < 5) ? step * 3.f : (10 - step) * 3.f;
@@ -820,18 +825,14 @@ void menu(sf::RenderWindow& win)
     middletxt(win, "Team IMF", 18, sf::Color(180, 180, 220), WINDOW_W / 2.f, 195.f);
 
     const string options[3] = { "New Game", "Continue", "Exit" };
-    float startY = 390.f;
-    float gapY = 65.f;
-    float btnW = 240.f;
-    float btnH = 48.f;
 
     for (int i = 0; i < 3; i++)
     {
-        float y = startY + i * gapY;
+        float y = BTN_Y + i * BTN_GAP;
         bool isselected = (i == choose_menu);
 
-        sf::RectangleShape btn({ btnW, btnH });
-        btn.setOrigin({ btnW / 2.f, btnH / 2.f });
+        sf::RectangleShape btn({ BTN_W, BTN_H });
+        btn.setOrigin({ BTN_W / 2.f, BTN_H / 2.f });
         btn.setPosition({ WINDOW_W / 2.f, y });
 
         if (isselected)
@@ -857,11 +858,13 @@ void menu(sf::RenderWindow& win)
     }
 }
 
-// Mahshaf - Feature 1 & 7: draws current game state
+// Mahshaf - Feature 1 & 7: clears window and draws current game state
 void draw(sf::RenderWindow& win)
 {
     static sf::CircleShape candy(CANDY_RADIUS);
     static sf::RectangleShape boardArea({ COLS * CELL, ROWS * CELL });
+
+    win.clear();
 
     switch (gameState)
     {
@@ -902,9 +905,8 @@ int main()
 {
     srand((unsigned)time(0));
 
-
     sf::RenderWindow window(sf::VideoMode({ WINDOW_W, WINDOW_H }), "Candy Crush");
-    window.setFramerateLimit(60);
+    window.setFramerateLimit(FPS);
 
     fontLoaded = gameFont.openFromFile("game_font.ttf");
 
