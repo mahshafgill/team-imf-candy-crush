@@ -350,6 +350,63 @@ bool handleBoardClick(int x, int y)
     return swapped;
 }
 
+void saveGame()
+{
+    ofstream saveFile("savegame.txt");
+    if (!saveFile.is_open())
+        return;
+
+    saveFile << ROWS << " " << COLS << " " << movesLeft << " "
+        << targetScore << " " << score << endl;
+
+    for (int row = 0; row < ROWS; row++)
+    {
+        for (int col = 0; col < COLS; col++)
+            saveFile << board[row][col] << " ";
+        saveFile << endl;
+    }
+}
+
+
+bool loadSavedGame()
+{
+    ifstream saveFile("savegame.txt");
+    int r = 0, c = 0, moves = 0, target = 0, savedScore = 0;
+
+    if (!(saveFile >> r >> c >> moves >> target >> savedScore))
+        return false;
+
+    if (r != ROWS || c != COLS || moves <= 0 || target <= 0 ||
+        savedScore < 0 || savedScore >= target)
+        return false;
+
+    int tempBoard[ROWS][COLS];
+    for (int row = 0; row < ROWS; row++)
+    {
+        for (int col = 0; col < COLS; col++) 
+        {
+            if (!(saveFile >> tempBoard[row][col]) ||
+                tempBoard[row][col] < 0 || tempBoard[row][col] > 6)
+                return false;
+        }
+    }
+
+    
+    for (int row = 0; row < ROWS; row++)
+        for (int col = 0; col < COLS; col++)
+            board[row][col] = tempBoard[row][col];
+
+    movesLeft = moves;
+    targetScore = target;
+    score = savedScore;
+    return true;
+}
+
+void clearSaveFile()
+{
+    ofstream saveFile("savegame.txt");
+}
+
 
 // =================== MAHSHAF: HUD, menu, hint & shuffle (F1, F6, F7, Bonus) ===================
 
@@ -368,11 +425,6 @@ void options(sf::RenderWindow& win);
 bool fmove(int& r1, int& c1, int& r2, int& c2);
 void shuffleboard();
 
-// Temporary stub until Faiqa adds Feature 8 (savegame.txt)
-bool loadSavedGame()
-{
-    return false;
-}
 
 // Mahshaf - prints text centered at (x, y)
 void middletxt(sf::RenderWindow& win, const string& str, unsigned int size,
@@ -677,7 +729,10 @@ void update(sf::RenderWindow& win)
             movesLeft--;
 
         if (pressedKey == KEY_ESCAPE)
+        {
+            saveGame();
             gameState = MENU;
+        }
 
         if (clicked && handleBoardClick(clickX, clickY))
         {
