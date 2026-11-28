@@ -339,13 +339,13 @@ bool trySwap(int r1, int c1, int r2, int c2)
 bool handleBoardClick(int x, int y)
 {
     
-    if (x < 20 || x >= 580 || y < 100 || y >= 660)
+    if (x < BOARD_X || x >= BOARD_X + COLS * CELL || y < BOARD_Y || y >= BOARD_Y + ROWS * CELL)
     {
         return false;
     }
 
-    int col = (x - 20) / 70;
-    int row = (y - 100) / 70;
+    int col = (int)((x - BOARD_X) / CELL);
+    int row = (int)((y - BOARD_Y) / CELL);
 
       // first click: select the candy
     if (selRow == -1)
@@ -355,7 +355,16 @@ bool handleBoardClick(int x, int y)
         return false;
     }
 
-    // second click: try to swap
+    int rowDiff = abs(row - selRow);
+    int colDiff = abs(col - selCol);
+
+    if (rowDiff + colDiff != 1)     // not a neighbour: move the ring
+    {
+        selRow = row;
+        selCol = col;
+        return false;
+    }
+
     bool swapped = trySwap(selRow, selCol, row, col);
     selRow = -1;
     selCol = -1;
@@ -366,10 +375,9 @@ void saveGame()
 {
     ofstream saveFile("savegame.txt");
     if (!saveFile.is_open())
-        return;
+       return;
 
-    saveFile << ROWS << " " << COLS << " " << movesLeft << " "
-        << targetScore << " " << score << endl;
+    saveFile << score << " " << movesLeft << " " << targetScore << endl;
 
     for (int row = 0; row < ROWS; row++)
     {
@@ -383,13 +391,12 @@ void saveGame()
 bool loadSavedGame()
 {
     ifstream saveFile("savegame.txt");
-    int r = 0, c = 0, moves = 0, target = 0, savedScore = 0;
+    int savedScore = 0, moves = 0, target = 0;
 
-    if (!(saveFile >> r >> c >> moves >> target >> savedScore))
+    if (!(saveFile >> savedScore >> moves >> target))
         return false;
 
-    if (r != ROWS || c != COLS || moves <= 0 || target <= 0 ||
-        savedScore < 0 || savedScore >= target)
+    if (moves <= 0 || target <= 0 || savedScore < 0 || savedScore >= target)
         return false;
 
     int tempBoard[ROWS][COLS];
