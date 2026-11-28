@@ -184,7 +184,7 @@ void Refill(int board[][8])
     }
 }
 
-//Chains_________Verified(multiple chain records)
+//Chains_________Verified(multiple chain rounds,l/T MAtches,4/5 matches in a row)
 void chains(bool marked[][8], int board[][8])
 {
    
@@ -904,6 +904,8 @@ void draw(sf::RenderWindow& win)
 int main()
 {
     srand((unsigned)time(0));
+    
+
 
     sf::RenderWindow window(sf::VideoMode({ WINDOW_W, WINDOW_H }), "Candy Crush");
     window.setFramerateLimit(FPS);
