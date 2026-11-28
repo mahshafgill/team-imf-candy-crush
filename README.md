@@ -1,35 +1,102 @@
-# Team IMF — Candy Crush (CS1002 PF, Fall 2026)
 
-An 8×8 match-three Candy Crush game written in C++ with SFML 3.0.2.
-Semester project for CS1002 Programming Fundamentals, FAST-NUCES Lahore.
+# Team IMF ( CANDY CRUSH )
 
-## Team
 
-| Name    | Roll No. | Features |
-|---------|----------|----------|
-| Mahshaf | 25L-2502 | Window & loop, HUD & win/loss, menu & states, repo, hint & shuffle (bonus) |
-| Iman    | 25L-2532 | Finding matches, clearing / falling / refilling |
-| Faiqa   | 25L-2522 | Board from file, selecting & swapping, save & continue |
+**GitHub Repository:** `https://github.com/mahshafgill/team-imf-candy-crush`
 
-## Controls
+# Team Contributions
 
-| Action | Control |
-|--------|---------|
-| Select a candy | Left-click it |
-| Swap | Left-click a neighbouring candy (up, down, left or right) |
-| Menu navigation | Up / Down arrows, Enter to choose |
-| Save and return to menu | Esc (while playing) |
-| Back to menu from end screen | Enter |
+----------------------------------------------------------------------------------------------------------------------------------------
 
-## How to Build and Run
+ ----------------------
+ |*Mahshaf*  25L-2502 |
+ ----------------------
+ |*Assigned Features* |
+ ----------------------
 
-1. Install Visual Studio 2022 with the **Desktop development with C++** workload.
-2. Download **SFML 3.0.2** and set it up in Visual Studio using the
-   [official SFML tutorial](https://www.sfml-dev.org/tutorials/3.0/getting-started/visual-studio/).
-3. Clone this repository and open the `.sln` file in Visual Studio.
-4. Make sure `level.txt` is in the project folder (next to `main.cpp`).
-5. Press **Ctrl + F5** to build and run.
+ • Game Window & Input/Update/Draw Loop (F1)
+ • Top HUD, Score/Moves/Target & Win/Loss Logic (F6)
+ • Main Menu, Game States & End Screens (F7)
+ • GitHub Repository Setup & Integration
+ • Idle Move Hint & Deadlock Auto-Shuffle (Bonus) 
+ --------------------------
+ |*Functions Implemented* |
+ --------------------------
+main()
+input()
+update()
+draw()
+hud()
+end()
+endscr()
+menu()
+options()
+bg()
+bounce()
+middletxt()
+fmove()
+shuffleboard()
+hint_shuffle()
+
+----------------------------------------------------------------------------------------------------------------------------------------
+
+ -------------------
+ |*Iman*  25L-2532 |
+ ----------------------
+ |*Assigned Features* |
+ ----------------------
+
+• Horizontal & Vertical 3+ Match Detection (F4)
+• Candy Clearing, Scoring, Gravity Falling, Random Refill & Chain Cascades (F5) 
+
+ --------------------------
+ |*Functions Implemented* |
+ --------------------------
+
+findMatches()
+clear_score()
+dropcandies()
+Refill()
+chains()
+
+----------------------------------------------------------------------------------------------------------------------------------------
+
+ -------------------
+ |*Faiqa* 25L-2522 |
+ ----------------------
+ |*Assigned Features* |
+ ----------------------
+
+• Level Loading from File & 8×8 Board Rendering (F2)
+• Mouse Click Selection & Valid Neighbour Swapping (F3)
+• Save & Continue Game Persistence (F8)
+
+ -------------------------
+ |*Functions Implemented*|
+ -------------------------
+
+loadLevel()
+drawBoard()
+trySwap()
+handleBoardClick()
+saveGame()
+loadSavedGame()
+clearSaveFile()
+
+# Controls
+
+ --------------------
+ | Action | Control |
+ --------------------
+ ------------------------------------------------------------------------------------------------
+ | Select a candy                   |   Left-click a candy on the board                         |
+ | Swap candies                     |   Left-click an adjacent candy (up, down, left, or right) |
+ | Menu navigation                  |   Up / Down arrow keys or Left-click, Enter to select     |
+ | Save and return to menu          |   Esc (while playing)                                     |
+ | Return to menu from end screen   |   Enter                                                   |
+ ------------------------------------------------------------------------------------------------
+
 
 ## Screenshot
 
-_Gameplay screenshot will be added here._
+![press CTRL key and then click ](preview-1.PNG)
